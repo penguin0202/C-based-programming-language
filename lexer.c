@@ -34,7 +34,6 @@ TOKEN new_token(TOKEN_TYPE type, char *value) {
 TOKEN next_token() {
     if (i >= chars_len-1) return new_token(INVALID);
     char c;
-    char tc;
 
     switch (c=chars[i]) {
         case ' ': i++; col++; c=chars[i];
@@ -42,8 +41,8 @@ TOKEN next_token() {
         case '/': 
             i++;
             col++;
-            tc = chars[i];
-            if (tc == '/') {
+            c = chars[i];
+            if (c == '/') {
                 i++;
                 col++;
                 while (chars[i] != '\n') {
