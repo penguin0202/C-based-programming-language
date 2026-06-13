@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include "helper.h"
 #include "token_info.h"
@@ -38,13 +37,8 @@ TOKEN next_token() {
     char tc;
 
     switch (c=chars[i]) {
-        case ' ':
-            i++;
-            col++; 
-        case '\n':
-            i++;
-            row++;
-            col = 1;
+        case ' ': i++; col++; c=chars[i];
+        case '\n': i++; row++; col = 1; c=chars[i];
         case '/': 
             i++;
             col++;
@@ -58,48 +52,24 @@ TOKEN next_token() {
                 i++;
                 row++; 
                 col = 1;
+                break;
             }
-            else {
-                i++;
-                col++;
-                return new_token(DIV);
-            }
-        case '+':
-            i++;
-            col++;
-            return new_token(ADD);
+            else { i++; col++; return new_token(DIV); }
+        case '+': i++; col++; return new_token(ADD);
+        case '-': i++; col++; return new_token(SUB);
+        case '*': i++; col++; return new_token(MUL);
+        case '%': i++; col++; return new_token(MOD);
+        case '{': i++; col++; return new_token(L_BRACKET);
+        case '}': i++; col++; return new_token(R_BRACKET);
     }
 }
-
-TOKEN *get_tokens(char *string) {
-    int row = 1;
-    int col = 1;
-    char c = peek();
-    char tc;
-    while ((c = peek()) != '\0') {
-        switch (c) {
-            case '+': advance(); tc = peek();
-                if (tc == '+') return TOKEN 
-        }
-    }
-}
-
-
-
-
-
-
-
 
 int main() {
     chars = read_file(filename);
     if (chars == NULL) {
         printf("Not able to open the file.");
         return 1;
-    }
-    chars_len = strlen(chars);
-    
-
+    } chars_len = strlen(chars);
 
     return 0;
 }
