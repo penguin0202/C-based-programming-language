@@ -26,14 +26,9 @@ char peek() {
     return token;
 }*/
 
-TOKEN new_token(TOKEN_TYPE type) {
-    return (TOKEN){.type=type, .value="", .row=temp_row, .col=temp_col};
-}
 
-void store_current_token_position() {
-    temp_row = row;
-    temp_col = col;
-}
+
+
 
 void advance() {
     i++;
@@ -62,25 +57,20 @@ TOKEN new_token(TOKEN_TYPE type, char *value) {
 int temp_row = 1;
 int temp_col = 1;
 
-#define UNKNOWN_TOKEN (TOKEN){.type=INVALID, .value="", .row=temp_row, .col=temp_col}
+void store_current_token_position() {
+    temp_row = row;
+    temp_col = col;
+}
 
-/*#define singular_token_check(c, type) (if (c == '+') { 
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(ADD);
-    })*/
+TOKEN new_token(TOKEN_TYPE type) {
+    return (TOKEN){.type=type, .value="", .row=temp_row, .col=temp_col};
+}
+
+#define UNKNOWN_TOKEN (TOKEN){.type=INVALID, .value="", .row=temp_row, .col=temp_col}
 
 TOKEN next_token() {
     if (i >= chars_len-1) return EOF_TOKEN;
-
-
-
-    while (i < chars_len) {
-        
-    }
-
-
+    /*while (i < chars_len)*/
     char c = chars[i];
 
     if (is_alpha(c)) {
@@ -116,7 +106,7 @@ TOKEN next_token() {
             do {
                 advance();
                 increment_col_pos();
-            } while ((c = chars[i]) != '\n');
+            } while ((c=chars[i]) != '\n');
             advance();
             increment_row_pos();
             reset_col_pos();
@@ -126,113 +116,45 @@ TOKEN next_token() {
         return new_token(DIV);
     }
 
-    if (c == '+') { 
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(ADD);
-    }
-
-    if (c == '-') {
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(SUB);
-    }
-
-    if (c == '*') {
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(MUL);
-    }
-
-    if (c == '%') {
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(MOD);
-    }
-
-    if (c == '{') {
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(L_BRACKET);
-    }
-
-    if (c == '}') {
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(R_BRACKET);
-    }
-
-    if (c == '(') {
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(L_PAREN);
-    }
-
-    if (c == ')') {
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(R_PAREN);
-    }
-
-    if (c == ',') {
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(COMMA);
-    }
-
-    if (c == '&') {
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(AND);
-    }
-
-    if (c == '?') {
-        store_current_token_position();
-        advance();
-        increment_col_pos();
-        return new_token(OR);
-    }
-
-
-    case ',': return new_token(COMMA);
-    case '&': return new_token(AND);
-    case '?': return new_token(OR);
-    case '!': 
-        if (peek() != '=') return new_token(NOT);
-        advance();
-        return new_token(NOT_EQUAL_TO);
-    case '=': 
-        if (peek() != '=') return new_token(ASSIGNER);
-        advance();
-        return new_token(EQUAL_TO);
-    case '>': 
-        if (peek() != '=') return new_token(GREATER_THAN);
-        advance();
-        return new_token(GREATER_THAN_OR_EQUAL_TO);
-    case '<': 
-        if (peek() != '=') return new_token(LESS_THAN);
-        advance();
-        return new_token(LESS_THAN_OR_EQUAL_TO);
-    default: 
-        if (is_alpha(c)) { // not implemented
-            advance();
-            while (is_alpha(peek())) {
-                advance();
-            }
-            return new_token(STRING);
+    #define SINGULAR_TOKEN_CHECK(tc, type) \
+        if (c == tc) { \
+            store_current_token_position(); \
+            advance(); \
+            increment_col_pos(); \
+            return new_token(type); \
         }
-        else return new_token(INVALID);
-    }
+
+    SINGULAR_TOKEN_CHECK('+', ADD);
+    SINGULAR_TOKEN_CHECK('-', SUB);
+    SINGULAR_TOKEN_CHECK('*', MUL);
+    SINGULAR_TOKEN_CHECK('%', MOD);
+    SINGULAR_TOKEN_CHECK('{', L_BRACKET);
+    SINGULAR_TOKEN_CHECK('}', R_BRACKET);
+    SINGULAR_TOKEN_CHECK('(', L_PAREN);
+    SINGULAR_TOKEN_CHECK(')', R_PAREN);
+    SINGULAR_TOKEN_CHECK(',', COMMA);
+    SINGULAR_TOKEN_CHECK('&', AND);
+    SINGULAR_TOKEN_CHECK('?', OR);
+
+    #define DOUBLE_TOKEN_CHECK(tc, type1, tcA, type2) \
+        if (c == tc) { \
+            store_current_token_position(); \
+            advance(); \
+            increment_col_pos(); \
+            if ((c=chars[i]) == tcA) { \
+                advance(); \
+                increment_col_pos(); \
+                return new_token(type2); \
+            } \
+            return new_token(type1); \
+        }
+    
+    DOUBLE_TOKEN_CHECK('!', NOT, '=', NOT_EQUAL_TO);
+    DOUBLE_TOKEN_CHECK('=', ASSIGNER, '=', EQUAL_TO);
+    DOUBLE_TOKEN_CHECK('>', GREATER_THAN, '=', GREATER_THAN_OR_EQUAL_TO);
+    DOUBLE_TOKEN_CHECK('<', LESS_THAN, '=', LESS_THAN_OR_EQUAL_TO);
+    
+    return UNKNOWN_TOKEN;
 }
 
 void print_token(TOKEN token) {
