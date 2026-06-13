@@ -1,53 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
+#include "helper.h"
+#include "token_info.h"
 
 char *filename = "source.txt";
 
 char *chars;
-int i = 0; // index of character to see
-
-char *read_file(char *filename) {
-    FILE *file;
-    file = fopen(filename, "r");
-    if (file == NULL) return NULL;
-
-    fseek(file, 0, SEEK_END);
-    int length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    //need +1 because it has to end with null terminator \0
-    char *string = malloc(sizeof(char) * (length+1));
-
-    char c;
-    int i = 0;
-    while ((c = fgetc(file)) != EOF) {
-        string[i] = c;
-        i++;
-    }
-    string[i] = '\0';
-
-    fclose(file);
-
-    return string;
-}
-
-typedef enum {
-    KEYWORD,
-    IDENTIFIER, // can be a custom datatype
-    OPERATOR,
-    DEFAULT_DATATYPE, // right now: int, bool
-    ASSIGNER,
-    DELIMITER,
-    LITERAL_BOOL,
-    LITERAL_INT,
-    OTHER
-} TOKEN_TYPE;
-
-typedef struct {
-    TOKEN_TYPE type;
-    char *value; 
-} TOKEN;
+int chars_len;
 
 char peek() {
     return chars[i];
@@ -57,16 +18,76 @@ char advance() {
     i++;
 }
 
-TOKEN *get_tokens(char *string) {
+int i = 0; // index of character to see
+int row = 1;
+int col = 1;
+
+TOKEN new_token(TOKEN_TYPE type) {
+    TOKEN token = {type, NULL, row, col};
+    return token;
+}
+
+TOKEN new_token(TOKEN_TYPE type, char *value) {
+    TOKEN token = {type, value, row, col};
+    return token;
+}
+
+TOKEN next_token() {
+    if (i >= chars_len-1) return new_token(INVALID);
     char c;
+    char tc;
+
+    switch (c=chars[i]) {
+        case ' ':
+            i++;
+            col++; 
+        case '\n':
+            i++;
+            row++;
+            col = 1;
+        case '/': 
+            i++;
+            col++;
+            tc = chars[i];
+            if (tc == '/') {
+                i++;
+                col++;
+                while (chars[i] != '\n') {
+                    i++;
+                }
+                i++;
+                row++; 
+                col = 1;
+            }
+            else {
+                i++;
+                col++;
+                return new_token(DIV);
+            }
+        case '+':
+            i++;
+            col++;
+            return new_token(ADD);
+    }
+}
+
+TOKEN *get_tokens(char *string) {
+    int row = 1;
+    int col = 1;
+    char c = peek();
     char tc;
     while ((c = peek()) != '\0') {
         switch (c) {
             case '+': advance(); tc = peek();
-                if (tc == '+') return 
+                if (tc == '+') return TOKEN 
         }
     }
 }
+
+
+
+
+
 
 
 
@@ -76,6 +97,7 @@ int main() {
         printf("Not able to open the file.");
         return 1;
     }
+    chars_len = strlen(chars);
     
 
 
