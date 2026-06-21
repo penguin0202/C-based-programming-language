@@ -1,4 +1,5 @@
 typedef enum {
+    EOF_,
     STRING, // temporary to show that a string of characters exist, not an actual type
     INVALID, 
     IF,
@@ -39,6 +40,4 @@ typedef struct {
     int col;
 } TOKEN;
 
-#define PLACEHOLDER_TOKEN (TOKEN){.type=INVALID, .value="", .row=0, .col=0}
-
-#define EOF_TOKEN (TOKEN){.type=INVALID, .value="", .row=-1, .col=-1}
+void print_token(TOKEN token);
