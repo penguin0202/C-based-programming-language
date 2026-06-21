@@ -1,17 +1,18 @@
 #include <stdlib.h>
 #include "dynamic_string.h"
+#include <string.h>
 
 DYSTR *dystr_create() {
     DYSTR *dystr = malloc(sizeof(DYSTR));
     if (dystr == NULL) return NULL; //malloc produced error
-    dystr->data = malloc(sizeof(char) * 1); // '\0'
+    dystr->capacity = 1;
+    dystr->data = malloc(sizeof(char) * dystr->capacity); // '\0'
     if (dystr->data == NULL) {
         free(dystr);
         return NULL; //malloc produced error
     }
     dystr->data[0] = '\0';
     dystr->length = 0;
-    dystr->capacity = 1;
     return dystr;
 }
 
@@ -42,4 +43,14 @@ void dystr_free(DYSTR *dystr) {
         free(dystr->data);
         free(dystr);
     }
+}
+
+char *dystr_convert(DYSTR *dystr) {
+    if (dystr == NULL) return NULL;
+    int size = sizeof(char) * dystr->length + 1;
+    char *ststring = malloc(size); // +1 for '\0'
+    if (ststring == NULL) return NULL;
+    memcpy(ststring, dystr->data, size);
+    // no need for ststring[i] = '\0'; because already copied it above
+    return ststring;
 }
