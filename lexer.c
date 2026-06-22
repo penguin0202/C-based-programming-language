@@ -37,6 +37,18 @@ TOKEN make_token(LEXER *lexer, TOKEN_TYPE type, char *value) {
     return (TOKEN){.type=type, .value=value, .row=lexer->temp_token_row, .col=lexer->temp_token_col};
 }
 
+TOKEN determine_named_token(LEXER *lexer, char *string) {
+    if (strcmp(string, "if") == 0) return make_token(lexer, IF, NULL);
+    if (strcmp(string, "else") == 0) return make_token(lexer, ELSE, NULL);
+    if (strcmp(string, "while") == 0) return make_token(lexer, WHILE, NULL);
+    if (strcmp(string, "break") == 0) return make_token(lexer, BREAK, NULL);
+
+
+    // cant do this, because I'd have to free the 'string' memory
+    // copy the memory instead; but do later though
+    return make_token(lexer, IDENTIFIER, string);
+}
+
 TOKEN next_token(LEXER *lexer) {
     if (lexer->i >= lexer->length) return make_token(lexer, EOF_, NULL);
 
@@ -97,22 +109,7 @@ TOKEN next_token(LEXER *lexer) {
             return make_token(lexer, DEV_ERROR, "failed to convert dystr into string string");
         }
         
-        if (strcmp(string, "if") == 0) {
-            free(string);
-            return make_token(lexer, IF, NULL);
-        }
-        if (strcmp(string, "else") == 0) {
-            free(string);
-            return make_token(lexer, ELSE, NULL);
-        }
-        if (strcmp(string, "while") == 0) {
-            free(string);
-            return make_token(lexer, WHILE, NULL);
-        }
-        if (strcmp(string, "break") == 0) {
-            free(string);
-            return make_token(lexer, BREAK, NULL);
-        }
+        
 
 
         free(string);
