@@ -1,7 +1,13 @@
+#ifndef TOKEN_INFO_H
+#define TOKEN_INFO_H
+#include <stddef.h>
+
 typedef enum {
+    DEV_ERROR,
+    DEV_PLACEHOLDER,
     EOF_,
     STRING, // temporary to show that a string of characters exist, not an actual type
-    INVALID, 
+    UNKNOWN, 
     IF,
     ELSE,
     WHILE,
@@ -12,8 +18,8 @@ typedef enum {
     MUL,
     DIV,
     MOD,
-    INT,
-    BOOL,
+    DATATYPE_INT,
+    DATATYPE_BOOL,
     ASSIGNER, 
     COMMA,
     L_BRACKET,
@@ -39,5 +45,7 @@ typedef struct {
     int row;
     int col;
 } TOKEN;
+
+#endif
 
 void print_token(TOKEN token);

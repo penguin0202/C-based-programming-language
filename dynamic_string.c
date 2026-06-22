@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "dynamic_string.h"
 #include <string.h>
+#include <stddef.h>
 
 DYSTR *dystr_create() {
     DYSTR *dystr = malloc(sizeof(DYSTR));

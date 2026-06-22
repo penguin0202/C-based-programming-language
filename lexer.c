@@ -4,6 +4,8 @@
 #include "lexer_helper.h"
 #include "dynamic_string.h"
 #include "lexer.h"
+#include <stddef.h>
+#include <stdio.h>
 
 int advance(LEXER *lexer) {
     if (lexer == NULL) return 0;
@@ -20,7 +22,7 @@ int advance_line(LEXER *lexer) {
 }
 
 int store_token_position(LEXER *lexer) {
-    if (lexer = NULL) return 0;
+    if (lexer == NULL) return 0;
     lexer->temp_token_row = lexer->row;
     lexer->temp_token_col = lexer->col;
     return 1;
@@ -36,17 +38,43 @@ TOKEN make_token(LEXER *lexer, TOKEN_TYPE type, char *value) {
 }
 
 TOKEN next_token(LEXER *lexer) {
-    if (lexer->i >= lexer->length) return EOF_TOKEN;
+    if (lexer->i >= lexer->length) return make_token(lexer, EOF_, NULL);
 
-    int temp_row = lexer->row;
-    int temp_col = lexer->col;
+    char c;
 
-    /*while (i < chars_len)*/
-    char c = peek(lexer);
+    while (lexer->i < lexer->length) {
+        c = peek(lexer);
+
+        if (c == ' ') {
+            advance(lexer);
+            continue;
+        }
+
+        if (c == '\n') {
+            advance(lexer);
+            advance_line(lexer);
+            continue;
+        }
+
+        if (c == '/') {
+            store_token_position(lexer);
+            advance(lexer);
+
+            if ((c=peek(lexer)) == '/') {
+                do advance(lexer); while (lexer->i < lexer->length && (c=peek(lexer)) != '\n');
+                advance(lexer);
+                advance_line(lexer);
+                continue;
+            }
+
+            return make_token(lexer, DIV, NULL);
+        }
+
+        break;
+    }
 
     #define UNKNOWN_TOKEN (TOKEN){.type=INVALID, .value="", .row=temp_row, .col=temp_col}
     #define PLACEHOLDER_TOKEN (TOKEN){.type=INVALID, .value="", .row=temp_row, .col=temp_col}
-    #define EOF_TOKEN (TOKEN){.type=EOF_, .value="", .row=-1, .col=-1}
     #define ERROR_TOKEN (TOKEN){.type=INVALID, .value="", .row=-2, .col=-2}
 
     if (is_alpha(c)) {
@@ -54,7 +82,7 @@ TOKEN next_token(LEXER *lexer) {
         DYSTR *dystr = dystr_create();
         if (dystr == NULL) {
             printf("creating dynamic string failed");
-            return ERROR_TOKEN;
+            return make_token(lexer, DEV_ERROR, "creating dynamic string failed");
         }
 
         do {
@@ -66,63 +94,56 @@ TOKEN next_token(LEXER *lexer) {
         dystr_free(dystr);
         if (string == NULL) {
             printf("failed to convert dystr into string string");
-            return ERROR_TOKEN;
+            return make_token(lexer, DEV_ERROR, "failed to convert dystr into string string");
         }
         
-        if (strcmp(string, "if") == 0) return make_Token(IF, NULL);
+        if (strcmp(string, "if") == 0) {
+            free(string);
+            return make_token(lexer, IF, NULL);
+        }
+        if (strcmp(string, "else") == 0) {
+            free(string);
+            return make_token(lexer, ELSE, NULL);
+        }
+        if (strcmp(string, "while") == 0) {
+            free(string);
+            return make_token(lexer, WHILE, NULL);
+        }
+        if (strcmp(string, "break") == 0) {
+            free(string);
+            return make_token(lexer, BREAK, NULL);
+        }
+
+
+        free(string);
     }
 
     if (is_num(c)) {
         //parse number
         store_token_position(lexer);
         advance(lexer);
-        return PLACEHOLDER_TOKEN;
+        return make_token(lexer, DEV_PLACEHOLDER, NULL);
     }
 
     if (c == '"') {
         //parse string
         store_token_position(lexer);
         advance(lexer);
-        return PLACEHOLDER_TOKEN;
+        return make_token(lexer, DEV_PLACEHOLDER, NULL);
     }
 
     if (c == '\'') {
         //parse char
         store_token_position(lexer);
         advance(lexer);
-        return PLACEHOLDER_TOKEN;
-    }
-
-    if (c == ' ') {
-        advance(lexer);
-        return next_token(lexer);
-    }
-
-    if (c == '\n') {
-        advance(lexer);
-        advance_line(lexer);
-        return next_token(lexer);
-    }
-
-    if (c == '/') {
-        store_token_position(lexer);
-        advance(lexer);
-
-        if ((c=peek(lexer)) == '/') {
-            do advance(lexer); while (lexer->i < lexer->length && (c=peek(lexer)) != '\n');
-            advance(lexer);
-            advance_line(lexer);
-            return next_token(lexer);
-        }
-
-        return make_token_wo(lexer, DIV);
+        return make_token(lexer, DEV_PLACEHOLDER, NULL);
     }
 
     #define SINGULAR_TOKEN_CHECK(tc, type) \
         if (c == tc) { \
             store_token_position(lexer); \
             advance(lexer); \
-            return make(type); \
+            return make_token(lexer, type, NULL); \
         }
 
     SINGULAR_TOKEN_CHECK('+', ADD);
@@ -143,9 +164,9 @@ TOKEN next_token(LEXER *lexer) {
             advance(lexer); \
             if ((c=peek(lexer)) == tcA) { \
                 advance(lexer); \
-                return NEW_TOKEN(type2); \
+                return make_token(lexer, type2, NULL); \
             } \
-            return NEW_TOKEN(type1); \
+            return make_token(lexer, type1, NULL); \
         }
     
     DOUBLE_TOKEN_CHECK('!', NOT, '=', NOT_EQUAL_TO);
@@ -153,5 +174,5 @@ TOKEN next_token(LEXER *lexer) {
     DOUBLE_TOKEN_CHECK('>', GREATER_THAN, '=', GREATER_THAN_OR_EQUAL_TO);
     DOUBLE_TOKEN_CHECK('<', LESS_THAN, '=', LESS_THAN_OR_EQUAL_TO);
     
-    return UNKNOWN_TOKEN;
+    return make_token(lexer, UNKNOWN, NULL);
 }
