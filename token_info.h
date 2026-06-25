@@ -6,28 +6,40 @@ typedef enum {
     DEV_ERROR,
     DEV_PLACEHOLDER,
     EOF_,
-    STRING, // temporary to show that a string of characters exist, not an actual type
     UNKNOWN, 
-    IF,
-    ELSE,
-    WHILE,
-    BREAK,
+
+    KEYWORD_IF,
+    KEYWORD_ELSE,
+    KEYWORD_WHILE,
+    KEYWORD_BREAK,
+
+    DATATYPE_INT,
+    DATATYPE_BOOL,
+
+    LITERAL_BOOL,
+    LITERAL_INT,
+    LITERAL_STRING, // temporary to show that a string of characters exist, not an actual type
+
+
+    
+    
+    
+    
+    
     IDENTIFIER, // can be a custom datatype
     ADD,
     SUB,
     MUL,
     DIV,
     MOD,
-    DATATYPE_INT,
-    DATATYPE_BOOL,
+    
     ASSIGNER, 
     COMMA,
     L_BRACKET,
     R_BRACKET,
     L_PAREN,
     R_PAREN,
-    LITERAL_BOOL,
-    LITERAL_INT,
+    
     GREATER_THAN,
     GREATER_THAN_OR_EQUAL_TO,
     LESS_THAN,
@@ -38,6 +50,8 @@ typedef enum {
     AND,
     OR
 } TOKEN_TYPE;
+
+extern char *token_types[];
 
 typedef struct {
     TOKEN_TYPE type;

@@ -7,29 +7,22 @@
 #include <stddef.h>
 #include <stdio.h>
 
-int advance(LEXER *lexer) {
-    if (lexer == NULL) return 0;
+void advance(LEXER *lexer) {
     lexer->i++;
     lexer->col++;
-    return 1;
 }
 
-int advance_line(LEXER *lexer) {
-    if (lexer == NULL) return 0;
+void advance_line(LEXER *lexer) {
     lexer->row++;
     lexer->col=1;
-    return 1;
 }
 
-int store_token_position(LEXER *lexer) {
-    if (lexer == NULL) return 0;
+void store_token_position(LEXER *lexer) {
     lexer->temp_token_row = lexer->row;
     lexer->temp_token_col = lexer->col;
-    return 1;
 }
 
 char peek(LEXER *lexer) {
-    if (lexer == NULL) return -1;
     return lexer->chars[lexer->i];
 }
 
@@ -38,15 +31,22 @@ TOKEN make_token(LEXER *lexer, TOKEN_TYPE type, char *value) {
 }
 
 TOKEN determine_named_token(LEXER *lexer, char *string) {
-    if (strcmp(string, "if") == 0) return make_token(lexer, IF, NULL);
-    if (strcmp(string, "else") == 0) return make_token(lexer, ELSE, NULL);
-    if (strcmp(string, "while") == 0) return make_token(lexer, WHILE, NULL);
-    if (strcmp(string, "break") == 0) return make_token(lexer, BREAK, NULL);
+    if (strcmp(string, "if") == 0) return make_token(lexer, KEYWORD_IF, NULL);
+    if (strcmp(string, "else") == 0) return make_token(lexer, KEYWORD_ELSE, NULL);
+    if (strcmp(string, "while") == 0) return make_token(lexer, KEYWORD_WHILE, NULL);
+    if (strcmp(string, "break") == 0) return make_token(lexer, KEYWORD_BREAK, NULL);
+    if (strcmp(string, "int") == 0) return make_token(lexer, DATATYPE_INT, NULL);
+    if (strcmp(string, "bool") == 0) return make_token(lexer, DATATYPE_BOOL, NULL);
 
-
-    // cant do this, because I'd have to free the 'string' memory
-    // copy the memory instead; but do later though
-    return make_token(lexer, IDENTIFIER, string);
+    // I created string_copy because I want to pass string into make_token, but I
+    // am going to free it after I return from this function; a copy is needed
+    char *string_copy = malloc(strlen(string) + 1);
+    if (string_copy == NULL) {
+        printf("failed to malloc a copy of string");
+        return make_token(lexer, DEV_ERROR, "failed to malloc a copy of string");
+    }
+    strcpy(string_copy, string);
+    return make_token(lexer, IDENTIFIER, string_copy);
 }
 
 TOKEN next_token(LEXER *lexer) {
@@ -85,10 +85,6 @@ TOKEN next_token(LEXER *lexer) {
         break;
     }
 
-    #define UNKNOWN_TOKEN (TOKEN){.type=INVALID, .value="", .row=temp_row, .col=temp_col}
-    #define PLACEHOLDER_TOKEN (TOKEN){.type=INVALID, .value="", .row=temp_row, .col=temp_col}
-    #define ERROR_TOKEN (TOKEN){.type=INVALID, .value="", .row=-2, .col=-2}
-
     if (is_alpha(c)) {
         store_token_position(lexer);
         DYSTR *dystr = dystr_create();
@@ -108,32 +104,39 @@ TOKEN next_token(LEXER *lexer) {
             printf("failed to convert dystr into string string");
             return make_token(lexer, DEV_ERROR, "failed to convert dystr into string string");
         }
-        
-        
-
-
+        TOKEN named_token = determine_named_token(lexer, string);
         free(string);
+        return named_token;
     }
 
     if (is_num(c)) {
         //parse number
         store_token_position(lexer);
-        advance(lexer);
-        return make_token(lexer, DEV_PLACEHOLDER, NULL);
-    }
+        DYSTR *dystr = dystr_create();
+        if (dystr == NULL) {
+            printf("creating dynamic string failed");
+            return make_token(lexer, DEV_ERROR, "creating dynamic string failed");
+        }
 
-    if (c == '"') {
-        //parse string
-        store_token_position(lexer);
-        advance(lexer);
-        return make_token(lexer, DEV_PLACEHOLDER, NULL);
-    }
+        do {
+            dystr_append(dystr, c);
+            advance(lexer);
+        } while (is_num(c=peek(lexer)));
 
-    if (c == '\'') {
-        //parse char
-        store_token_position(lexer);
-        advance(lexer);
-        return make_token(lexer, DEV_PLACEHOLDER, NULL);
+        char *string = dystr_convert(dystr);
+        dystr_free(dystr);
+        if (string == NULL) {
+            printf("failed to convert dystr into string string");
+            return make_token(lexer, DEV_ERROR, "failed to convert dystr into string string");
+        }
+        char *string_copy = malloc(strlen(string) + 1);
+        if (string_copy == NULL) {
+            printf("failed to malloc a copy of string");
+            return make_token(lexer, DEV_ERROR, "failed to malloc a copy of string");
+        }
+        strcpy(string_copy, string);
+        free(string);
+        return make_token(lexer, LITERAL_INT, string_copy);
     }
 
     #define SINGULAR_TOKEN_CHECK(tc, type) \
@@ -172,4 +175,18 @@ TOKEN next_token(LEXER *lexer) {
     DOUBLE_TOKEN_CHECK('<', LESS_THAN, '=', LESS_THAN_OR_EQUAL_TO);
     
     return make_token(lexer, UNKNOWN, NULL);
+
+    /*if (c == '"') {
+        //parse string
+        store_token_position(lexer);
+        advance(lexer);
+        return make_token(lexer, DEV_PLACEHOLDER, NULL);
+    }
+
+    if (c == '\'') {z
+        //parse char
+        store_token_position(lexer);
+        advance(lexer);
+        return make_token(lexer, DEV_PLACEHOLDER, NULL);
+    }*/
 }

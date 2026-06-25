@@ -26,6 +26,9 @@ int main() {
     TOKEN token;
     while ((token = next_token(lexer)).type != EOF_ && token.type != DEV_ERROR) {
         print_token(token);
+        if (token.value != NULL) {
+            free(token.value);
+        }
     }
 
     free(lexer->chars);

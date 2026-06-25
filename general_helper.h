@@ -1,1 +1,0 @@
-#define NULL_CHECK()
