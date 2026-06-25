@@ -7,6 +7,25 @@
 #include <stddef.h>
 #include <stdio.h>
 
+LEXER *lexer_create(char *chars) {
+    LEXER *lexer = malloc(sizeof(LEXER));
+
+    char *chars_copy = malloc(strlen(chars) + 1);
+    if (chars_copy == NULL) {
+        printf("failed to malloc a copy of chars");
+        return NULL;
+    }
+    strcpy(chars_copy, chars);
+    lexer->chars = chars_copy;
+    lexer->length = strlen(lexer->chars);
+
+    lexer->i = 0;
+    lexer->row = 1;
+    lexer->col = 1;
+    lexer->temp_token_row = 1;
+    lexer->temp_token_col = 1;
+}
+
 void advance(LEXER *lexer) {
     lexer->i++;
     lexer->col++;
@@ -175,18 +194,4 @@ TOKEN next_token(LEXER *lexer) {
     DOUBLE_TOKEN_CHECK('<', LESS_THAN, '=', LESS_THAN_OR_EQUAL_TO);
     
     return make_token(lexer, UNKNOWN, NULL);
-
-    /*if (c == '"') {
-        //parse string
-        store_token_position(lexer);
-        advance(lexer);
-        return make_token(lexer, DEV_PLACEHOLDER, NULL);
-    }
-
-    if (c == '\'') {z
-        //parse char
-        store_token_position(lexer);
-        advance(lexer);
-        return make_token(lexer, DEV_PLACEHOLDER, NULL);
-    }*/
 }

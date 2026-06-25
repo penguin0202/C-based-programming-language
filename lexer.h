@@ -17,3 +17,4 @@ typedef struct {
 #endif
 
 TOKEN next_token(LEXER *lexer);
+LEXER *lexer_create(char *chars);

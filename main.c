@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-char *filename = "source.txt";
+char filename[] = "source.txt";
 
 int main() {
     char *file = read_file(filename);
@@ -14,15 +14,8 @@ int main() {
         printf("Error reading file: %s\n", filename);
         return 1;
     }
-    LEXER *lexer = malloc(sizeof(LEXER));
-    lexer->chars = file;
-    lexer->length = strlen(lexer->chars);
-    lexer->i = 0;
-    lexer->row = 1;
-    lexer->col = 1;
-    lexer->temp_token_row = 1;
-    lexer->temp_token_col = 1;
-
+    LEXER *lexer = lexer_create(file);
+    free(file);
     TOKEN token;
     while ((token = next_token(lexer)).type != EOF_ && token.type != DEV_ERROR) {
         print_token(token);

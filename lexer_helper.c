@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #include <string.h>
 
 int is_alpha(char c) {

@@ -20,12 +20,6 @@ typedef enum {
     LITERAL_INT,
     LITERAL_STRING, // temporary to show that a string of characters exist, not an actual type
 
-
-    
-    
-    
-    
-    
     IDENTIFIER, // can be a custom datatype
     ADD,
     SUB,
