@@ -1,11 +1,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include "token_info.h"
-#include "lexer_helper.h"
-#include "dynamic_string.h"
+#include "helpers/dynamic_string.h"
 #include "lexer.h"
 #include <stddef.h>
 #include <stdio.h>
+
+int is_alpha(char c) {
+    return strchr("_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", c) != NULL;
+}
+
+int is_num(char c) {
+    return strchr("0123456789", c) != NULL;
+}
+
+int is_alpha_or_num(char c) {
+    return is_alpha(c) || is_num(c);
+}
 
 LEXER *lexer_create(char *chars) {
     LEXER *lexer = malloc(sizeof(LEXER));
@@ -18,7 +29,6 @@ LEXER *lexer_create(char *chars) {
     strcpy(chars_copy, chars);
     lexer->chars = chars_copy;
     lexer->length = strlen(lexer->chars);
-
     lexer->i = 0;
     lexer->row = 1;
     lexer->col = 1;

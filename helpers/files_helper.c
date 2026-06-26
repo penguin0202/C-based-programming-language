@@ -11,7 +11,7 @@ char *read_file(char *filename) {
     fseek(file, 0, SEEK_SET);
 
     //need +1 because it has to end with null terminator \0
-    char *file_contents = malloc(sizeof(char) * (length+1));
+    char *file_contents = malloc(length+1);
 
     char c;
     int i = 0;

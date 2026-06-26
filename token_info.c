@@ -1,6 +1,5 @@
 #include "token_info.h"
 #include <stdio.h>
-#include <stddef.h>
 
 char *token_types[] = {
     "DEV_ERROR",
